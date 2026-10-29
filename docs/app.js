@@ -1,5 +1,11 @@
 import { decideNextSet } from "./coach.js";
 import { loadAppState, requestPersistentStorage, saveAppState } from "./storage.js";
+import { decideExerciseContinuation } from "./exercise-policy.js";
+import {
+  formatRest,
+  recommendedRestSeconds,
+  remainingRestSeconds,
+} from "./rest.js";
 import {
   initialSessionState,
   startSession,
@@ -39,10 +45,50 @@ const els = {
   coachHeadline: document.querySelector("#coachHeadline"),
   coachText: document.querySelector("#coachText"),
   coachMetrics: document.querySelector("#coachMetrics"),
+  exerciseStatus: document.querySelector("#exerciseStatus"),
+  restPanel: document.querySelector("#restPanel"),
+  restTimer: document.querySelector("#restTimer"),
+  restText: document.querySelector("#restText"),
   historyList: document.querySelector("#historyList"),
   sessionCount: document.querySelector("#sessionCount"),
   offlineBadge: document.querySelector("#offlineBadge"),
 };
+
+let restIntervalId = null;
+
+function stopRestTimer() {
+  if (restIntervalId !== null) {
+    clearInterval(restIntervalId);
+    restIntervalId = null;
+  }
+  els.restPanel.classList.add("hidden");
+}
+
+function renderRestTimer(meta, sets, policy) {
+  stopRestTimer();
+
+  if (!sets.length || policy.shouldStop) return;
+
+  const lastSet = sets.at(-1);
+  const recommendedSeconds = recommendedRestSeconds(meta);
+
+  const update = () => {
+    const remaining = remainingRestSeconds({
+      loggedAt: lastSet.loggedAt,
+      recommendedSeconds,
+    });
+
+    els.restTimer.textContent = remaining > 0 ? formatRest(remaining) : "Ready";
+    els.restText.textContent =
+      remaining > 0
+        ? `Suggested recovery: ${formatRest(recommendedSeconds)}. You can override it.`
+        : "Suggested recovery reached. Start when you feel ready.";
+  };
+
+  els.restPanel.classList.remove("hidden");
+  update();
+  restIntervalId = setInterval(update, 1000);
+}
 
 async function saveState() {
   const result = await saveAppState({
@@ -135,6 +181,7 @@ async function finishWorkout() {
   const session = activeSession();
   if (!session || session.sets.length === 0) return;
 
+  stopRestTimer();
   const result = finishSession(state.sessionMachine, nowIso());
   state.history.unshift(result.completedSession);
   state.history = state.history.slice(0, 100);
@@ -149,6 +196,7 @@ async function cancelWorkout() {
   const confirmed = window.confirm("Discard this active session?");
   if (!confirmed) return;
 
+  stopRestTimer();
   state.sessionMachine = cancelSession(state.sessionMachine);
   await saveState();
   render();
@@ -194,6 +242,27 @@ function renderWorkout(decision = null) {
     els.coachMetrics.innerHTML = metrics
       .map((item) => `<span class="metric">${item}</span>`)
       .join("");
+
+    const policy = decideExerciseContinuation({
+      coachDecision: currentDecision,
+      sets,
+    });
+
+    if (policy.status === "calibrated") {
+      els.exerciseStatus.textContent = "Exercise complete · working load calibrated";
+      els.exerciseStatus.classList.add("complete");
+    } else if (policy.status === "unresolved") {
+      els.exerciseStatus.textContent = "Exercise complete · calibration unresolved";
+      els.exerciseStatus.classList.add("complete");
+    } else if (sets.length > 0) {
+      els.exerciseStatus.textContent = `Calibrating · ${sets.length}/5 sets maximum`;
+      els.exerciseStatus.classList.remove("complete");
+    } else {
+      els.exerciseStatus.textContent = "Cold start · you choose set 1";
+      els.exerciseStatus.classList.remove("complete");
+    }
+
+    renderRestTimer(meta, sets, policy);
   }
 
   renderSets();
