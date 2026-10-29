@@ -142,3 +142,31 @@ Every feature should answer one question:
 > Does this help make a better training decision now or later?
 
 If not, it probably does not belong in the core product yet.
+
+
+## PWA shell
+
+A mobile-first PWA now lives in `docs/`.
+
+It is intentionally simple:
+
+- start a workout
+- choose an exercise
+- choose the first load yourself
+- log weight × reps @ RIR
+- receive immediate next-set coaching
+- keep the active workout after refresh
+- finish the session into local browser history
+- work offline after the first load through a service worker
+
+Personal session data is stored in the browser's local storage. It is not committed to the public GitHub repository.
+
+### Publish with GitHub Pages
+
+In the repository:
+
+`Settings → Pages → Deploy from a branch → main → /docs`
+
+Once Pages is enabled, the PWA can be opened from the phone browser and added to the Home Screen.
+
+This PWA is only the interaction layer. The coaching rules remain deliberately simple while the decision engine is being validated.
