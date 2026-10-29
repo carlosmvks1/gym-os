@@ -1,10 +1,11 @@
-const CACHE = "gym-os-v2";
+const CACHE = "gym-os-v3";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
   "./coach.js",
+  "./storage.js",
   "./manifest.webmanifest",
   "./icon.svg",
   "./exercises.json"
