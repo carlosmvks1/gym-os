@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Gym OS" />
+  <title>Gym OS</title>
+  <link rel="manifest" href="./manifest.webmanifest" />
+  <link rel="icon" href="./icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">PERSONAL ADAPTIVE TRAINING SYSTEM</p>
+        <h1>Gym OS</h1>
+      </div>
+      <span id="offlineBadge" class="badge hidden">Offline</span>
+    </header>
+
+    <section id="homeView" class="view">
+      <div class="hero card">
+        <p class="eyebrow">TODAY</p>
+        <h2>Train first. Let the system learn.</h2>
+        <p class="muted">You choose the first load. Coaching begins after set 1.</p>
+        <button id="startWorkoutBtn" class="primary">Start workout</button>
+      </div>
+
+      <div class="card">
+        <div class="section-head">
+          <h3>Recent sessions</h3>
+          <span id="sessionCount" class="muted">0 total</span>
+        </div>
+        <div id="historyList" class="history-list empty-state">No sessions yet.</div>
+      </div>
+
+      <button id="installBtn" class="secondary hidden">Install Gym OS</button>
+    </section>
+
+    <section id="workoutView" class="view hidden">
+      <div class="card workout-header">
+        <div>
+          <p class="eyebrow">ACTIVE SESSION</p>
+          <h2 id="sessionTitle">Workout</h2>
+          <p id="sessionMeta" class="muted">0 sets logged</p>
+        </div>
+        <button id="finishWorkoutBtn" class="secondary compact">Finish</button>
+      </div>
+
+      <div id="coachCard" class="card coach-card">
+        <p class="eyebrow">COACH</p>
+        <h3 id="coachHeadline">Pick an exercise and your first load.</h3>
+        <p id="coachText" class="muted">Gym OS will respond after you log the set.</p>
+        <div id="coachMetrics" class="coach-metrics"></div>
+      </div>
+
+      <form id="setForm" class="card set-form">
+        <label>
+          Exercise
+          <select id="exerciseSelect" required></select>
+        </label>
+
+        <div class="input-grid">
+          <label>
+            Weight (kg)
+            <input id="weightInput" type="number" min="0" step="0.5" inputmode="decimal" required />
+          </label>
+          <label>
+            Reps
+            <input id="repsInput" type="number" min="1" step="1" inputmode="numeric" required />
+          </label>
+          <label>
+            RIR
+            <input id="rirInput" type="number" min="0" max="10" step="0.5" inputmode="decimal" required />
+          </label>
+        </div>
+
+        <button class="primary" type="submit">Log set</button>
+      </form>
+
+      <div class="card">
+        <div class="section-head">
+          <h3>Current session</h3>
+          <button id="cancelWorkoutBtn" class="text-button">Cancel session</button>
+        </div>
+        <div id="setList" class="set-list empty-state">Your sets will appear here.</div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
