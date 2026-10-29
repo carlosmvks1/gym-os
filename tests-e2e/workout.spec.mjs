@@ -39,6 +39,9 @@ test("complete calibration flow persists in IndexedDB and survives reload", asyn
   await page.getByRole("button", { name: "Log set" }).click();
   await expect(page.locator("#coachHeadline")).toHaveText("Increase the load.");
   await expect(page.locator("#weightInput")).toHaveValue("25");
+  await expect(page.locator("#exerciseStatus")).toContainText("Calibrating");
+  await expect(page.locator("#restPanel")).toBeVisible();
+  await expect(page.locator("#restTimer")).toHaveText(/\d+:\d{2}|Ready/);
 
   await page.locator("#repsInput").fill("9");
   await page.locator("#rirInput").fill("2");
@@ -49,6 +52,8 @@ test("complete calibration flow persists in IndexedDB and survives reload", asyn
   await page.locator("#rirInput").fill("1");
   await page.getByRole("button", { name: "Log set" }).click();
   await expect(page.locator("#coachHeadline")).toHaveText("Working load provisionally calibrated.");
+  await expect(page.locator("#exerciseStatus")).toContainText("Exercise complete");
+  await expect(page.locator("#restPanel")).toBeHidden();
 
   const active = await readGymOsState(page);
   expect(active.activeSession.sets).toHaveLength(3);
