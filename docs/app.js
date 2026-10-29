@@ -1,3 +1,5 @@
+import { decideNextSet } from "./coach.js";
+
 const ACTIVE_KEY = "gymos.activeSession.v1";
 const HISTORY_KEY = "gymos.history.v1";
 
@@ -81,77 +83,8 @@ function currentExerciseSets(name) {
 }
 
 function coachDecision(exerciseName, sets) {
-  const meta = getExerciseMeta(exerciseName);
-  if (!meta) {
-    return {
-      action: "unknown",
-      headline: "Exercise not configured yet.",
-      text: "Add it to the exercise library before using coaching rules.",
-      nextWeight: null,
-      confidence: "very low",
-      targetSets: 0,
-    };
-  }
-
-  if (sets.length === 0) {
-    return {
-      action: "user_seeded",
-      headline: "You choose the first load.",
-      text: `Target ${meta.repMin}–${meta.repMax} reps. Log the set and Gym OS takes over from there.`,
-      nextWeight: null,
-      confidence: "very low",
-      targetSets: 0,
-    };
-  }
-
-  const targetRirMin = 1;
-  const targetRirMax = 3;
-  const valid = sets.filter(
-    (s) =>
-      s.reps >= meta.repMin &&
-      s.reps <= meta.repMax &&
-      s.rir >= targetRirMin &&
-      s.rir <= targetRirMax
-  ).length;
-
-  const last = sets.at(-1);
-  let action;
-  let nextWeight;
-  let headline;
-  let text;
-
-  if (last.reps < meta.repMin || last.rir < targetRirMin) {
-    action = "decrease";
-    nextWeight = Math.max(meta.increment, last.weightKg - meta.increment);
-    headline = "Back the load down.";
-    text = "That set was too hard for calibration. Keep the next set inside the target rep and RIR zone.";
-  } else if (last.reps > meta.repMax || last.rir > targetRirMax) {
-    action = "increase";
-    nextWeight = last.weightKg + meta.increment;
-    headline = "Increase the load.";
-    text = "That set was too easy for calibration. Move up one exercise-specific increment.";
-  } else {
-    action = "hold";
-    nextWeight = last.weightKg;
-    headline = valid >= 2 ? "Working load provisionally calibrated." : "Hold the load.";
-    text = valid >= 2
-      ? "You have repeated useful work inside the target zone. No need to force more certainty today."
-      : "That set landed in the useful zone. Repeat it once to confirm.";
-  }
-
-  const confidence = valid >= 3 ? "high" : valid === 2 ? "medium" : valid === 1 ? "low" : "very low";
-
-  return {
-    action,
-    headline,
-    text,
-    nextWeight,
-    confidence,
-    targetSets: valid,
-    meta,
-  };
+  return decideNextSet(getExerciseMeta(exerciseName), sets);
 }
-
 function addSet(event) {
   event.preventDefault();
   if (!state.activeSession) return;
