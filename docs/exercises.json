@@ -1,0 +1,92 @@
+[
+  {
+    "exercise": "Incline Dumbbell Press",
+    "repMin": 6,
+    "repMax": 10,
+    "increment": 2.5
+  },
+  {
+    "exercise": "Machine Chest Press",
+    "repMin": 8,
+    "repMax": 12,
+    "increment": 5
+  },
+  {
+    "exercise": "Lat Pulldown",
+    "repMin": 8,
+    "repMax": 12,
+    "increment": 5
+  },
+  {
+    "exercise": "Chest Supported Row",
+    "repMin": 8,
+    "repMax": 12,
+    "increment": 5
+  },
+  {
+    "exercise": "Cable Lateral Raise",
+    "repMin": 12,
+    "repMax": 20,
+    "increment": 1
+  },
+  {
+    "exercise": "Rear Delt Fly",
+    "repMin": 12,
+    "repMax": 20,
+    "increment": 2.5
+  },
+  {
+    "exercise": "Cable Curl",
+    "repMin": 10,
+    "repMax": 15,
+    "increment": 2.5
+  },
+  {
+    "exercise": "Tricep Pushdown",
+    "repMin": 10,
+    "repMax": 15,
+    "increment": 2.5
+  },
+  {
+    "exercise": "Hack Squat",
+    "repMin": 6,
+    "repMax": 10,
+    "increment": 5
+  },
+  {
+    "exercise": "Leg Press",
+    "repMin": 8,
+    "repMax": 12,
+    "increment": 5
+  },
+  {
+    "exercise": "Romanian Deadlift",
+    "repMin": 6,
+    "repMax": 10,
+    "increment": 5
+  },
+  {
+    "exercise": "Seated Leg Curl",
+    "repMin": 8,
+    "repMax": 12,
+    "increment": 5
+  },
+  {
+    "exercise": "Leg Extension",
+    "repMin": 10,
+    "repMax": 15,
+    "increment": 5
+  },
+  {
+    "exercise": "Standing Calf Raise",
+    "repMin": 8,
+    "repMax": 15,
+    "increment": 5
+  },
+  {
+    "exercise": "Cable Crunch",
+    "repMin": 10,
+    "repMax": 20,
+    "increment": 2.5
+  }
+]
