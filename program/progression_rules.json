@@ -1,0 +1,16 @@
+{
+  "target_rir_min": 1,
+  "target_rir_max": 3,
+  "sessions_required_to_increase_load": 2,
+  "decrease_load_percent_if_below_rep_min": 5,
+  "recovery_flags": {
+    "sleep_hours_below": 5.5,
+    "energy_at_or_below": 2,
+    "soreness_at_or_above": 5
+  },
+  "notes": [
+    "Rep progression comes before load progression.",
+    "Increase load only when every logged working set reaches the top of the target rep range in two consecutive sessions and average RIR is at least the minimum target.",
+    "The engine is intentionally conservative in v0.1."
+  ]
+}
