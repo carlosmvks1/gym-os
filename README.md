@@ -183,3 +183,18 @@ Gym OS now treats the coaching engine as pure decision logic separate from the U
 - GitHub Actions runs Python tests, JavaScript tests, syntax checks and JSON validation on every push and pull request.
 
 Calibration confirmation now requires repeated valid sets at the **same load**. A valid set at one load no longer falsely confirms a different load.
+
+
+## End-to-end PWA tests
+
+The CI now also launches the actual app in Chromium with Playwright and verifies the user flow:
+
+1. start a workout;
+2. choose the first load;
+3. log three calibration sets;
+4. verify load recommendations;
+5. reload and confirm the active workout persists;
+6. finish and confirm history is retained;
+7. activate the service worker, cut the simulated network connection and reload the app offline.
+
+Playwright is pinned to `1.64.1`.
