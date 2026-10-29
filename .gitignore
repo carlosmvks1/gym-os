@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Personal/local Gym OS data — never commit these from a public repo.
+data/private/
+data/live_session.json
+photos/
