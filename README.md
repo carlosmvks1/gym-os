@@ -159,7 +159,7 @@ It is intentionally simple:
 - finish the session into local browser history
 - work offline after the first load through a service worker
 
-Personal session data is stored in the browser's local storage. It is not committed to the public GitHub repository.
+Personal session data is stored in IndexedDB on the device. Gym OS automatically migrates any earlier localStorage data and falls back to localStorage only if IndexedDB is unavailable. It is not committed to the public GitHub repository.
 
 ### Publish with GitHub Pages
 
@@ -198,3 +198,18 @@ The CI now also launches the actual app in Chromium with Playwright and verifies
 7. activate the service worker, cut the simulated network connection and reload the app offline.
 
 Playwright is pinned to `1.64.1`.
+
+
+## Local data layer
+
+The PWA now uses a dedicated `docs/storage.js` layer.
+
+- IndexedDB is the primary store.
+- Active session + workout history are committed in one read/write transaction.
+- Existing `gymos.*.v1` localStorage data migrates automatically on first load.
+- Legacy keys are removed only after the IndexedDB write succeeds.
+- A localStorage fallback remains for browsers where IndexedDB cannot be opened.
+- The app requests persistent browser storage on a best-effort basis.
+- Service worker cache version `gym-os-v3` includes the storage module.
+
+The E2E suite verifies IndexedDB persistence, legacy migration, reload persistence and offline reload with an active workout.
