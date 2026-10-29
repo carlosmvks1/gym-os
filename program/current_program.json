@@ -1,0 +1,139 @@
+{
+  "version": "0.1",
+  "note": "Calibration template. Replace starting weights after the first sessions.",
+  "days": {
+    "Upper A": [
+      {
+        "exercise": "Incline Dumbbell Press",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Lat Pulldown",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Chest Supported Row",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Cable Lateral Raise",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Cable Curl",
+        "sets": 2,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Tricep Pushdown",
+        "sets": 2,
+        "starting_weight_kg": null
+      }
+    ],
+    "Lower A": [
+      {
+        "exercise": "Hack Squat",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Romanian Deadlift",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Leg Extension",
+        "sets": 2,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Seated Leg Curl",
+        "sets": 2,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Standing Calf Raise",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Cable Crunch",
+        "sets": 3,
+        "starting_weight_kg": null
+      }
+    ],
+    "Upper B": [
+      {
+        "exercise": "Machine Chest Press",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Chest Supported Row",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Lat Pulldown",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Cable Lateral Raise",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Rear Delt Fly",
+        "sets": 2,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Cable Curl",
+        "sets": 2,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Tricep Pushdown",
+        "sets": 2,
+        "starting_weight_kg": null
+      }
+    ],
+    "Lower B": [
+      {
+        "exercise": "Leg Press",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Seated Leg Curl",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Leg Extension",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Romanian Deadlift",
+        "sets": 2,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Standing Calf Raise",
+        "sets": 3,
+        "starting_weight_kg": null
+      },
+      {
+        "exercise": "Cable Crunch",
+        "sets": 3,
+        "starting_weight_kg": null
+      }
+    ]
+  }
+}
