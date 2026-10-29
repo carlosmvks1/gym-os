@@ -230,3 +230,25 @@ active
 ```
 
 Invalid transitions throw instead of silently creating impossible workout states. The machine is pure, separately unit-tested, and persisted through IndexedDB.
+
+
+## Exercise completion + rest guidance
+
+Gym OS now separates two decisions after each set:
+
+1. **Next-set load decision** — increase, hold or decrease.
+2. **Exercise continuation decision** — continue calibration or stop the exercise.
+
+Current calibration guardrails:
+
+- a working load is considered provisionally calibrated only after the required confirming sets at the same load;
+- once calibrated, the app explicitly marks the exercise complete;
+- calibration is capped at 5 sets so uncertainty does not create endless fatigue;
+- if the cap is reached without confirmation, the exercise is marked complete but unresolved rather than forcing more work.
+
+The PWA also shows an advisory rest countdown after each non-final set:
+
+- compound movement patterns: 120 s default;
+- isolation/core patterns: 90 s default.
+
+These are defaults, not hard locks. The athlete can begin earlier or later. Rep-drop fatigue rules are intentionally deferred until Gym OS has enough rest and historical context to interpret them responsibly.
