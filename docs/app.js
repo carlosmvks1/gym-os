@@ -1,12 +1,11 @@
 import { decideNextSet } from "./coach.js";
-
-const ACTIVE_KEY = "gymos.activeSession.v1";
-const HISTORY_KEY = "gymos.history.v1";
+import { loadAppState, requestPersistentStorage, saveAppState } from "./storage.js";
 
 const state = {
   exercises: [],
-  activeSession: loadJson(ACTIVE_KEY),
-  history: loadJson(HISTORY_KEY) || [],
+  activeSession: null,
+  history: [],
+  storageMode: "initializing",
   deferredInstallPrompt: null,
 };
 
@@ -33,21 +32,12 @@ const els = {
   offlineBadge: document.querySelector("#offlineBadge"),
 };
 
-function loadJson(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key));
-  } catch {
-    return null;
-  }
-}
-
-function saveState() {
-  if (state.activeSession) {
-    localStorage.setItem(ACTIVE_KEY, JSON.stringify(state.activeSession));
-  } else {
-    localStorage.removeItem(ACTIVE_KEY);
-  }
-  localStorage.setItem(HISTORY_KEY, JSON.stringify(state.history));
+async function saveState() {
+  const result = await saveAppState({
+    activeSession: state.activeSession,
+    history: state.history,
+  });
+  state.storageMode = result.storageMode;
 }
 
 function nowIso() {
@@ -62,14 +52,14 @@ function localDateLabel(iso) {
   }).format(new Date(iso));
 }
 
-function createSession() {
+async function createSession() {
   state.activeSession = {
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),
     name: `Workout · ${localDateLabel(nowIso())}`,
     startedAt: nowIso(),
     sets: [],
   };
-  saveState();
+  await saveState();
   render();
 }
 
@@ -85,7 +75,7 @@ function currentExerciseSets(name) {
 function coachDecision(exerciseName, sets) {
   return decideNextSet(getExerciseMeta(exerciseName), sets);
 }
-function addSet(event) {
+async function addSet(event) {
   event.preventDefault();
   if (!state.activeSession) return;
 
@@ -117,12 +107,12 @@ function addSet(event) {
   els.repsInput.value = "";
   els.rirInput.value = "";
 
-  saveState();
+  await saveState();
   renderWorkout(decision);
   els.repsInput.focus();
 }
 
-function finishWorkout() {
+async function finishWorkout() {
   if (!state.activeSession) return;
   if (state.activeSession.sets.length === 0) return;
 
@@ -130,16 +120,16 @@ function finishWorkout() {
   state.history.unshift(state.activeSession);
   state.history = state.history.slice(0, 100);
   state.activeSession = null;
-  saveState();
+  await saveState();
   render();
 }
 
-function cancelWorkout() {
+async function cancelWorkout() {
   if (!state.activeSession) return;
   const confirmed = window.confirm("Discard this active session?");
   if (!confirmed) return;
   state.activeSession = null;
-  saveState();
+  await saveState();
   render();
 }
 
@@ -248,6 +238,11 @@ function updateOnlineStatus() {
 }
 
 async function init() {
+  const saved = await loadAppState();
+  state.activeSession = saved.activeSession;
+  state.history = saved.history;
+  state.storageMode = saved.storageMode;
+
   try {
     const response = await fetch("./exercises.json");
     state.exercises = await response.json();
@@ -258,6 +253,8 @@ async function init() {
   populateExercises();
   render();
   updateOnlineStatus();
+
+  requestPersistentStorage();
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("./sw.js");
