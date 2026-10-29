@@ -1,0 +1,9 @@
+{
+  "name": "gym-os",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests-js/*.test.mjs",
+    "test:python": "python -m unittest discover -s tests -v"
+  }
+}
