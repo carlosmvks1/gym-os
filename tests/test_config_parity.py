@@ -18,9 +18,15 @@ class ConfigParityTests(unittest.TestCase):
 
         self.assertEqual(set(canonical), set(pwa))
         for exercise, row in canonical.items():
+            self.assertEqual(row["primary_muscle"], pwa[exercise]["primaryMuscle"], exercise)
+            self.assertEqual(row["pattern"], pwa[exercise]["pattern"], exercise)
             self.assertEqual(int(row["rep_min"]), int(pwa[exercise]["repMin"]), exercise)
             self.assertEqual(int(row["rep_max"]), int(pwa[exercise]["repMax"]), exercise)
-            self.assertAlmostEqual(float(row["load_increment_kg"]), float(pwa[exercise]["increment"]), msg=exercise)
+            self.assertAlmostEqual(
+                float(row["load_increment_kg"]),
+                float(pwa[exercise]["increment"]),
+                msg=exercise,
+            )
 
 
 if __name__ == "__main__":
