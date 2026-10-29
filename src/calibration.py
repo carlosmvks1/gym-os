@@ -52,14 +52,11 @@ def recommend_next_set(
     rules: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
-    Calibration engine.
-
-    Each set must contain:
-      {"weight_kg": float, "reps": int, "rir": float}
-
-    The engine intentionally uses transparent rules:
+    Cold start is athlete-seeded:
+    - before set 1, Gym OS does not invent a load
+    - after set 1, coaching begins
     - too easy -> increase one exercise-specific increment
-    - inside target reps + RIR -> hold and confirm
+    - target reps + target RIR -> hold and confirm
     - too hard -> decrease one increment
     """
     library = library or load_library()
@@ -81,13 +78,16 @@ def recommend_next_set(
     if not sets:
         return {
             "exercise": exercise,
-            "action": "choose_conservative_start",
+            "action": "user_selects_first_load",
             "next_weight_kg": None,
             "target_reps": [rep_min, rep_max],
             "target_rir": [rir_min, rir_max],
             "confidence": confidence(0),
             "calibrated": False,
-            "reason": "No calibration sets logged yet. Choose a conservative starting load.",
+            "reason": (
+                "Cold start: choose the first load yourself. "
+                "Gym OS starts coaching after set 1."
+            ),
         }
 
     normalized: list[dict[str, float | int]] = []
@@ -166,7 +166,7 @@ def interactive_calibration(exercise: str) -> None:
         f"Target: {first['target_reps'][0]}-{first['target_reps'][1]} reps "
         f"@ RIR {first['target_rir'][0]:g}-{first['target_rir'][1]:g}"
     )
-    print("Choose a deliberately conservative first working weight.\n")
+    print("Set 1 is yours: choose the weight. Coaching starts after you log it.\n")
 
     while True:
         try:
