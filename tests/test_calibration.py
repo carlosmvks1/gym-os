@@ -23,6 +23,16 @@ RULES = {
 
 
 class CalibrationTests(unittest.TestCase):
+    def test_cold_start_is_user_seeded(self):
+        result = recommend_next_set(
+            "Incline Dumbbell Press",
+            [],
+            LIBRARY,
+            RULES,
+        )
+        self.assertEqual(result["action"], "user_selects_first_load")
+        self.assertIsNone(result["next_weight_kg"])
+
     def test_too_easy_increases_load(self):
         result = recommend_next_set(
             "Incline Dumbbell Press",
