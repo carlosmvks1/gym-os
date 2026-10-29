@@ -1,5 +1,5 @@
 exercise,primary_muscle,pattern,status,rep_min,rep_max,load_increment_kg,notes
-Incline Dumbbell Press,chest,horizontal_push,YES,6,10,2,
+Incline Dumbbell Press,chest,horizontal_push,YES,6,10,2.5,
 Machine Chest Press,chest,horizontal_push,YES,8,12,5,
 Lat Pulldown,lats,vertical_pull,YES,8,12,5,
 Chest Supported Row,back,horizontal_pull,YES,8,12,5,
