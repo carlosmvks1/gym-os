@@ -1,90 +1,120 @@
 [
   {
     "exercise": "Incline Dumbbell Press",
+    "primaryMuscle": "chest",
+    "pattern": "horizontal_push",
     "repMin": 6,
     "repMax": 10,
     "increment": 2.5
   },
   {
     "exercise": "Machine Chest Press",
+    "primaryMuscle": "chest",
+    "pattern": "horizontal_push",
     "repMin": 8,
     "repMax": 12,
     "increment": 5
   },
   {
     "exercise": "Lat Pulldown",
+    "primaryMuscle": "lats",
+    "pattern": "vertical_pull",
     "repMin": 8,
     "repMax": 12,
     "increment": 5
   },
   {
     "exercise": "Chest Supported Row",
+    "primaryMuscle": "back",
+    "pattern": "horizontal_pull",
     "repMin": 8,
     "repMax": 12,
     "increment": 5
   },
   {
     "exercise": "Cable Lateral Raise",
+    "primaryMuscle": "side_delts",
+    "pattern": "isolation",
     "repMin": 12,
     "repMax": 20,
     "increment": 1
   },
   {
     "exercise": "Rear Delt Fly",
+    "primaryMuscle": "rear_delts",
+    "pattern": "isolation",
     "repMin": 12,
     "repMax": 20,
     "increment": 2.5
   },
   {
     "exercise": "Cable Curl",
+    "primaryMuscle": "biceps",
+    "pattern": "isolation",
     "repMin": 10,
     "repMax": 15,
     "increment": 2.5
   },
   {
     "exercise": "Tricep Pushdown",
+    "primaryMuscle": "triceps",
+    "pattern": "isolation",
     "repMin": 10,
     "repMax": 15,
     "increment": 2.5
   },
   {
     "exercise": "Hack Squat",
+    "primaryMuscle": "quads",
+    "pattern": "squat",
     "repMin": 6,
     "repMax": 10,
     "increment": 5
   },
   {
     "exercise": "Leg Press",
+    "primaryMuscle": "quads",
+    "pattern": "squat",
     "repMin": 8,
     "repMax": 12,
     "increment": 5
   },
   {
     "exercise": "Romanian Deadlift",
+    "primaryMuscle": "hamstrings",
+    "pattern": "hinge",
     "repMin": 6,
     "repMax": 10,
     "increment": 5
   },
   {
     "exercise": "Seated Leg Curl",
+    "primaryMuscle": "hamstrings",
+    "pattern": "knee_flexion",
     "repMin": 8,
     "repMax": 12,
     "increment": 5
   },
   {
     "exercise": "Leg Extension",
+    "primaryMuscle": "quads",
+    "pattern": "isolation",
     "repMin": 10,
     "repMax": 15,
     "increment": 5
   },
   {
     "exercise": "Standing Calf Raise",
+    "primaryMuscle": "calves",
+    "pattern": "isolation",
     "repMin": 8,
     "repMax": 15,
     "increment": 5
   },
   {
     "exercise": "Cable Crunch",
+    "primaryMuscle": "abs",
+    "pattern": "core",
     "repMin": 10,
     "repMax": 20,
     "increment": 2.5
