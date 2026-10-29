@@ -21,28 +21,60 @@ def load_rules() -> dict[str, Any]:
         return json.load(f)
 
 
-def round_load(value: float, increment: float) -> float:
-    if increment <= 0:
-        return round(value, 2)
-    return round(round(value / increment) * increment, 2)
+def _round_load(value: float) -> float:
+    return round(value + 1e-12, 2)
 
 
 def adjust_load(weight: float, increment: float, direction: str) -> float:
     if direction == "up":
-        return round_load(weight + increment, increment)
+        return _round_load(weight + increment)
     if direction == "down":
-        return max(increment, round_load(weight - increment, increment))
-    return round_load(weight, increment)
+        return max(increment, _round_load(weight - increment))
+    return _round_load(weight)
 
 
-def confidence(valid_target_sets: int) -> dict[str, Any]:
-    if valid_target_sets >= 3:
+def confidence(valid_sets_at_current_load: int) -> dict[str, Any]:
+    if valid_sets_at_current_load >= 3:
         return {"label": "high", "score": 1.0}
-    if valid_target_sets == 2:
+    if valid_sets_at_current_load == 2:
         return {"label": "medium", "score": 0.67}
-    if valid_target_sets == 1:
+    if valid_sets_at_current_load == 1:
         return {"label": "low", "score": 0.33}
     return {"label": "very_low", "score": 0.0}
+
+
+def _is_valid_target_set(
+    set_data: dict[str, float | int],
+    rep_min: int,
+    rep_max: int,
+    rir_min: float,
+    rir_max: float,
+) -> bool:
+    return (
+        rep_min <= int(set_data["reps"]) <= rep_max
+        and rir_min <= float(set_data["rir"]) <= rir_max
+    )
+
+
+def _confirmation_streak(
+    sets: list[dict[str, float | int]],
+    rep_min: int,
+    rep_max: int,
+    rir_min: float,
+    rir_max: float,
+) -> int:
+    if not sets:
+        return 0
+
+    current_weight = float(sets[-1]["weight_kg"])
+    streak = 0
+    for item in reversed(sets):
+        if abs(float(item["weight_kg"]) - current_weight) > 1e-9:
+            break
+        if not _is_valid_target_set(item, rep_min, rep_max, rir_min, rir_max):
+            break
+        streak += 1
+    return streak
 
 
 def recommend_next_set(
@@ -51,14 +83,6 @@ def recommend_next_set(
     library: dict[str, dict[str, str]] | None = None,
     rules: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """
-    Cold start is athlete-seeded:
-    - before set 1, Gym OS does not invent a load
-    - after set 1, coaching begins
-    - too easy -> increase one exercise-specific increment
-    - target reps + target RIR -> hold and confirm
-    - too hard -> decrease one increment
-    """
     library = library or load_library()
     rules = rules or load_rules()
 
@@ -73,7 +97,7 @@ def recommend_next_set(
     calibration_rules = rules.get("calibration", {})
     rir_min = float(calibration_rules.get("target_rir_min", rules.get("target_rir_min", 1)))
     rir_max = float(calibration_rules.get("target_rir_max", rules.get("target_rir_max", 3)))
-    target_sets = int(calibration_rules.get("target_sets_for_medium_confidence", 2))
+    confirming_sets = int(calibration_rules.get("target_sets_for_medium_confidence", 2))
 
     if not sets:
         return {
@@ -83,11 +107,10 @@ def recommend_next_set(
             "target_reps": [rep_min, rep_max],
             "target_rir": [rir_min, rir_max],
             "confidence": confidence(0),
+            "confirming_sets": 0,
             "calibrated": False,
-            "reason": (
-                "Cold start: choose the first load yourself. "
-                "Gym OS starts coaching after set 1."
-            ),
+            "should_stop": False,
+            "reason": "Cold start: choose the first load yourself. Gym OS starts coaching after set 1.",
         }
 
     normalized: list[dict[str, float | int]] = []
@@ -97,52 +120,49 @@ def recommend_next_set(
             reps = int(set_data["reps"])
             rir = float(set_data["rir"])
         except (KeyError, TypeError, ValueError) as exc:
-            raise ValueError(
-                f"Set {index} requires valid weight_kg, reps and rir values."
-            ) from exc
+            raise ValueError(f"Set {index} requires valid weight_kg, reps and rir values.") from exc
 
         if weight <= 0 or reps <= 0 or not 0 <= rir <= 10:
             raise ValueError(f"Set {index} has invalid values.")
 
         normalized.append({"weight_kg": weight, "reps": reps, "rir": rir})
 
-    valid_target_sets = sum(
-        rep_min <= s["reps"] <= rep_max and rir_min <= s["rir"] <= rir_max
-        for s in normalized
-    )
-    current_confidence = confidence(valid_target_sets)
     last = normalized[-1]
-
     weight = float(last["weight_kg"])
     reps = int(last["reps"])
     rir = float(last["rir"])
 
-    if reps < rep_min or rir < rir_min:
+    streak = _confirmation_streak(normalized, rep_min, rep_max, rir_min, rir_max)
+    current_confidence = confidence(streak)
+
+    if reps < rep_min and rir > rir_max:
+        action = "hold_load"
+        next_weight = adjust_load(weight, increment, "hold")
+        reason = "Stopped below the rep range with plenty in reserve; keep the load and take the next set further."
+    elif reps < rep_min:
         action = "decrease_load"
         next_weight = adjust_load(weight, increment, "down")
-        reason = (
-            "The last set was too hard for calibration: reps fell below range "
-            "or RIR was below target."
-        )
-    elif reps > rep_max or rir > rir_max:
+        reason = "Below the target rep range without excess reserve; reduce one increment."
+    elif reps > rep_max:
         action = "increase_load"
         next_weight = adjust_load(weight, increment, "up")
-        reason = (
-            "The last set was too easy for calibration: reps exceeded range "
-            "or too many reps were left in reserve."
-        )
+        reason = "Exceeded the target rep range; increase one increment on the next set."
+    elif rir < rir_min:
+        action = "decrease_load"
+        next_weight = adjust_load(weight, increment, "down")
+        reason = "Rep count was in range, but effort was above the calibration target."
+    elif rir > rir_max:
+        action = "increase_load"
+        next_weight = adjust_load(weight, increment, "up")
+        reason = "Rep count was in range, but the set was too easy for calibration."
     else:
         action = "hold_load"
         next_weight = adjust_load(weight, increment, "hold")
-        reason = (
-            "The last set landed inside the calibration zone. "
-            "Repeat the load to confirm it."
-        )
+        reason = "The set landed inside the calibration zone. Repeat the same load once to confirm it."
 
-    calibrated = valid_target_sets >= target_sets
-
-    if calibrated and action == "hold_load":
-        reason += " Working load is provisionally calibrated."
+    calibrated = action == "hold_load" and streak >= confirming_sets
+    if calibrated:
+        reason = "Working load provisionally calibrated at this exact load. Stop calibrating this exercise for today."
 
     return {
         "exercise": exercise,
@@ -150,63 +170,9 @@ def recommend_next_set(
         "next_weight_kg": next_weight,
         "target_reps": [rep_min, rep_max],
         "target_rir": [rir_min, rir_max],
-        "valid_target_sets": valid_target_sets,
         "confidence": current_confidence,
+        "confirming_sets": streak,
         "calibrated": calibrated,
+        "should_stop": calibrated,
         "reason": reason,
     }
-
-
-def interactive_calibration(exercise: str) -> None:
-    sets: list[dict[str, Any]] = []
-
-    print(f"\nGYM OS — CALIBRATION: {exercise}\n")
-    first = recommend_next_set(exercise, sets)
-    print(
-        f"Target: {first['target_reps'][0]}-{first['target_reps'][1]} reps "
-        f"@ RIR {first['target_rir'][0]:g}-{first['target_rir'][1]:g}"
-    )
-    print("Set 1 is yours: choose the weight. Coaching starts after you log it.\n")
-
-    while True:
-        try:
-            weight = float(input("Weight (kg): "))
-            reps = int(input("Reps: "))
-            rir = float(input("RIR: "))
-        except ValueError:
-            print("Invalid entry. Try again.\n")
-            continue
-
-        sets.append({"weight_kg": weight, "reps": reps, "rir": rir})
-        result = recommend_next_set(exercise, sets)
-
-        print(f"\nCoach: {result['reason']}")
-        print(f"Action: {result['action']}")
-        print(f"Next load: {result['next_weight_kg']:g} kg")
-        print(
-            f"Confidence: {result['confidence']['label']} "
-            f"({result['confidence']['score']:.0%})"
-        )
-
-        if result["calibrated"] and result["action"] == "hold_load":
-            print("\nProvisional working load calibrated.")
-            break
-
-        if len(sets) >= 5:
-            print(
-                "\nCalibration stopped after 5 sets. "
-                "Do not keep adding fatigue just to force certainty."
-            )
-            break
-
-        print()
-
-
-if __name__ == "__main__":
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Gym OS live calibration coach")
-    parser.add_argument("exercise", help="Exact exercise name from exercise_library.csv")
-    args = parser.parse_args()
-
-    interactive_calibration(args.exercise)
