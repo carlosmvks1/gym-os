@@ -3,6 +3,13 @@
   "target_rir_max": 3,
   "sessions_required_to_increase_load": 2,
   "decrease_load_percent_if_below_rep_min": 5,
+  "calibration": {
+    "target_rir_min": 1,
+    "target_rir_max": 3,
+    "target_sets_for_medium_confidence": 2,
+    "max_sets_per_exercise": 5,
+    "principle": "Calibration seeks a repeatable working zone, not a maximal performance."
+  },
   "recovery_flags": {
     "sleep_hours_below": 5.5,
     "energy_at_or_below": 2,
