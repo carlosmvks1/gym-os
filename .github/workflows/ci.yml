@@ -5,19 +5,23 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
-  test:
+  unit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
+          package-manager-cache: false
 
       - name: Python tests
         run: python -m unittest discover -s tests -v
@@ -32,3 +36,25 @@ jobs:
           node --check docs/sw.js
           python -m json.tool docs/manifest.webmanifest > /dev/null
           python -m json.tool docs/exercises.json > /dev/null
+
+  pwa-e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          package-manager-cache: false
+
+      - name: Install Playwright
+        run: |
+          npm install --no-package-lock
+          npx playwright install --with-deps chromium
+
+      - name: Browser and offline PWA tests
+        run: npm run test:e2e
