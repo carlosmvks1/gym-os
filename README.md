@@ -2,83 +2,126 @@
 
 **Personal Adaptive Training System**
 
-Gym OS is being built as a coach first and a workout tracker second. The tracker exists to give the coaching engine enough structured data to decide what should happen next.
+Gym OS is a coach first and a workout tracker second. The tracker exists to give the coaching engine structured data to decide what should happen next.
 
-## Current milestone: live calibration
+## Core rule: user-seeded cold start
 
-The first working loop is:
+Gym OS does **not** invent the first load of an exercise it has never seen you perform.
 
 ```text
-choose conservative load
-        ↓
-perform set
-        ↓
+first exposure
+      ↓
+you choose exercise + load
+      ↓
+you perform set 1
+      ↓
 log weight × reps @ RIR
-        ↓
-Gym OS interprets the set
-        ↓
+      ↓
+Gym OS starts coaching
+      ↓
 increase / hold / decrease
-        ↓
-repeat until a working zone is confirmed
 ```
+
+Once real history exists, later versions can suggest the first load of the day. You will still be able to override it.
+
+## Current milestone: persistent live sessions
+
+Start a free session:
+
+```bash
+python src/session.py start "Calibration 01"
+```
+
+Log your first set:
+
+```bash
+python src/session.py add "Incline Dumbbell Press" 22.5 10 4
+```
+
+Gym OS responds immediately with the coaching decision for the next set.
 
 Example:
 
 ```text
+Logged: Incline Dumbbell Press — 22.5 kg × 10 @ RIR 4
+Coach: The last set was too easy for calibration.
+Next load: 25 kg
+Confidence: very_low (0%)
+```
+
+Then log the next set:
+
+```bash
+python src/session.py add "Incline Dumbbell Press" 25 9 2
+```
+
+Check the session:
+
+```bash
+python src/session.py status
+```
+
+Finish it:
+
+```bash
+python src/session.py finish
+```
+
+Finished sessions are written to:
+
+```text
+data/private/training_log.csv
+```
+
+That folder is ignored by Git, so personal training data is not pushed to the public repository.
+
+To discard the current session:
+
+```bash
+python src/session.py cancel
+```
+
+## Calibration logic
+
+The goal is not to test maximal strength. It is to find a repeatable working zone.
+
+```text
 22.5 kg × 10 @ RIR 4
 → too easy
-→ next set: 25 kg
+→ increase
 
 25 kg × 9 @ RIR 2
 → target zone
-→ hold 25 kg
+→ hold
 
 25 kg × 8 @ RIR 1
 → target zone confirmed
-→ provisional working load calibrated
+→ provisional calibration
 ```
 
-The goal is **not** to test maximal strength. The goal is to find a repeatable working load with useful reps and controlled effort while avoiding unnecessary fatigue.
+Calibration confidence currently works as:
 
-## Run the calibration coach
+- 0 valid target sets → very low
+- 1 valid target set → low
+- 2 valid target sets → medium / provisional calibration
+- 3+ valid target sets → high
 
-```bash
-python src/calibration.py "Incline Dumbbell Press"
-```
-
-After each set enter:
-
-- weight in kg
-- reps
-- RIR (reps in reserve)
-
-Gym OS returns the next-load recommendation and its current confidence.
+This is intentionally simple and auditable. It can become more sophisticated once real repeated exposures exist.
 
 ## Architecture
 
-- `data/athlete_profile.json` — athlete profile and goals
-- `data/exercise_library.csv` — exercise-specific rep ranges and load increments
-- `data/training_log.csv` — one row per working set
-- `data/body_metrics.csv` — optional bodyweight/waist trends
-- `data/recovery_log.csv` — sleep, energy, soreness and stress
-- `program/current_program.json` — current split
+- `data/exercise_library.csv` — exercise-specific targets and increments
+- `data/live_session.json` — temporary active session, ignored by Git
+- `data/private/training_log.csv` — personal history, ignored by Git
 - `program/progression_rules.json` — coaching rules
-- `src/calibration.py` — live set-by-set calibration coach
+- `src/session.py` — persistent live-session controller
+- `src/calibration.py` — set-by-set coaching engine
 - `src/progression.py` — between-session progression engine
 - `src/analytics.py` — training summaries
-- `src/next_session.py` — next-session generator
-- `tests/test_calibration.py` — calibration behavior tests
+- `src/next_session.py` — future-session generator
+- `tests/` — behavior tests
 
-## Calibration confidence
-
-Gym OS does not pretend to know an athlete from one set.
-
-- 0 valid target sets → very low confidence
-- 1 valid target set → low confidence
-- 2 valid target sets → medium confidence / provisional calibration
-- 3+ valid target sets → high confidence
-
-Confidence can later evolve from a simple rule into a richer model using repeated exposures, rep drop-off, RIR accuracy and session history.
+Both the progression engine and analytics automatically use the private log when it exists.
 
 ## Tests
 
@@ -88,17 +131,14 @@ python -m unittest discover -s tests
 
 ## Privacy
 
-This repository is currently public. Do **not** commit sensitive body, health, injury, photo or recovery data while it remains public.
+This repository was created public. Do not commit body measurements, injuries, photos or other personal health data unless you deliberately make the repository private.
 
-The `.gitignore` excludes local/private session files and photos, but already-tracked CSV templates are still visible.
+Gym OS currently keeps live and finished personal session data under ignored local paths by default.
 
-## Existing progression engine
+## Product principle
 
-Outside calibration, Gym OS currently uses conservative double-progression logic:
+Every feature should answer one question:
 
-1. Build reps inside the target range.
-2. Add load only after repeated performance at the top of the range with acceptable RIR.
-3. Hold or reduce load when performance deteriorates.
-4. Use exercise-specific increments.
+> Does this help make a better training decision now or later?
 
-This is an early decision engine. The rules will evolve only when real training data gives us a reason to change them.
+If not, it probably does not belong in the core product yet.
