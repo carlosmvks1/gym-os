@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Optional
 
 ROOT = Path(__file__).resolve().parents[1]
-LOG_PATH = ROOT / "data" / "training_log.csv"
+PUBLIC_LOG_PATH = ROOT / "data" / "training_log.csv"
+PRIVATE_LOG_PATH = ROOT / "data" / "private" / "training_log.csv"
 LIBRARY_PATH = ROOT / "data" / "exercise_library.csv"
 RULES_PATH = ROOT / "program" / "progression_rules.json"
 
@@ -24,6 +25,10 @@ class SessionPerformance:
     @property
     def avg_rir(self) -> Optional[float]:
         return sum(self.rirs) / len(self.rirs) if self.rirs else None
+
+
+def active_log_path() -> Path:
+    return PRIVATE_LOG_PATH if PRIVATE_LOG_PATH.exists() else PUBLIC_LOG_PATH
 
 
 def _float(value: str) -> Optional[float]:
@@ -46,10 +51,12 @@ def load_rules() -> dict:
 
 def exercise_history(exercise: str) -> list[SessionPerformance]:
     grouped = defaultdict(list)
-    if not LOG_PATH.exists():
+    log_path = active_log_path()
+
+    if not log_path.exists():
         return []
 
-    with LOG_PATH.open(newline="", encoding="utf-8") as f:
+    with log_path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             if row.get("exercise") == exercise:
                 grouped[row["date"]].append(row)
@@ -72,7 +79,11 @@ def recommend(exercise: str, fallback_weight: Optional[float] = None) -> dict:
     rules = load_rules()
 
     if exercise not in library:
-        return {"exercise": exercise, "action": "calibrate", "reason": "Exercise is not in exercise_library.csv"}
+        return {
+            "exercise": exercise,
+            "action": "calibrate",
+            "reason": "Exercise is not in exercise_library.csv",
+        }
 
     meta = library[exercise]
     rep_min = int(meta["rep_min"])
@@ -86,7 +97,7 @@ def recommend(exercise: str, fallback_weight: Optional[float] = None) -> dict:
             "action": "calibrate",
             "weight_kg": fallback_weight,
             "rep_range": [rep_min, rep_max],
-            "reason": "No logged working sets yet."
+            "reason": "No logged working sets yet.",
         }
 
     latest = history[-1]
@@ -98,7 +109,10 @@ def recommend(exercise: str, fallback_weight: Optional[float] = None) -> dict:
             "action": "hold",
             "weight_kg": current_weight,
             "rep_range": [rep_min, rep_max],
-            "reason": "At least one working set is below the target rep range; earn reps before adding load."
+            "reason": (
+                "At least one working set is below the target rep range; "
+                "earn reps before adding load."
+            ),
         }
 
     required = int(rules["sessions_required_to_increase_load"])
@@ -107,11 +121,14 @@ def recommend(exercise: str, fallback_weight: Optional[float] = None) -> dict:
 
     qualifies = len(recent) == required
     if qualifies:
-        for perf in recent:
-            if min(perf.reps) < rep_max:
+        for performance in recent:
+            if min(performance.reps) < rep_max:
                 qualifies = False
                 break
-            if perf.avg_rir is not None and perf.avg_rir < target_rir_min:
+            if (
+                performance.avg_rir is not None
+                and performance.avg_rir < target_rir_min
+            ):
                 qualifies = False
                 break
 
@@ -122,7 +139,10 @@ def recommend(exercise: str, fallback_weight: Optional[float] = None) -> dict:
             "weight_kg": round(current_weight + increment, 2),
             "previous_weight_kg": current_weight,
             "rep_range": [rep_min, rep_max],
-            "reason": f"Top of rep range achieved for {required} consecutive sessions at acceptable RIR."
+            "reason": (
+                f"Top of rep range achieved for {required} consecutive sessions "
+                "at acceptable RIR."
+            ),
         }
 
     return {
@@ -130,12 +150,15 @@ def recommend(exercise: str, fallback_weight: Optional[float] = None) -> dict:
         "action": "progress_reps",
         "weight_kg": current_weight,
         "rep_range": [rep_min, rep_max],
-        "reason": "Keep load stable and add reps while staying in the target RIR range."
+        "reason": (
+            "Keep load stable and add reps while staying in the target RIR range."
+        ),
     }
 
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser()
     parser.add_argument("exercise")
     args = parser.parse_args()
