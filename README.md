@@ -170,3 +170,16 @@ In the repository:
 Once Pages is enabled, the PWA can be opened from the phone browser and added to the Home Screen.
 
 This PWA is only the interaction layer. The coaching rules remain deliberately simple while the decision engine is being validated.
+
+
+## Quality gates
+
+Gym OS now treats the coaching engine as pure decision logic separate from the UI.
+
+- `docs/coach.js` is the PWA coaching engine.
+- `tests-js/coach.test.mjs` tests it directly with Node, including a broad reps/RIR sweep.
+- Python calibration has matching rules for CLI/reference use.
+- `tests/test_config_parity.py` prevents the PWA exercise configuration from drifting away from the canonical CSV library.
+- GitHub Actions runs Python tests, JavaScript tests, syntax checks and JSON validation on every push and pull request.
+
+Calibration confirmation now requires repeated valid sets at the **same load**. A valid set at one load no longer falsely confirms a different load.
