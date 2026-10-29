@@ -213,3 +213,20 @@ The PWA now uses a dedicated `docs/storage.js` layer.
 - Service worker cache version `gym-os-v3` includes the storage module.
 
 The E2E suite verifies IndexedDB persistence, legacy migration, reload persistence and offline reload with an active workout.
+
+
+## Session state machine
+
+The PWA now routes workout lifecycle mutations through `docs/session-machine.js`.
+
+```text
+idle
+  └─ START → active
+
+active
+  ├─ LOG_SET → active
+  ├─ FINISH → idle + completed session
+  └─ CANCEL → idle
+```
+
+Invalid transitions throw instead of silently creating impossible workout states. The machine is pure, separately unit-tested, and persisted through IndexedDB.
